@@ -9,9 +9,9 @@ A pure python based application utilising pytesseract(Python wrapper for Google 
 + Python Imaging Library (PIL) (or the Pillow fork)
 
 Install pytesseract with the following command
-'''
+```
 pip install pytesseract
-'''
+```
 
 **Usage:**
 + select capture to take a screen snippet
