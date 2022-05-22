@@ -1,3 +1,7 @@
+'''
+DISPLAY INFORMATION
+'''
+
 import ctypes
 
 def getVirturalDesktopDimensions():

@@ -18,18 +18,14 @@ from PyQt5.QtWidgets import (
 
 outputWindow_CSS = '''
 QMainWindow{
-    #background-color: rgb(30, 30, 30);
     background-color: rgb(255, 255, 255);
 }
 #statusLabel{
-    #color: white;
     color: black
 }
 QPlainTextEdit{
     #background-color: rgb(70, 70, 70);
     #color: white;
-    background-color: rgb(0, 0, 0);
-    color: black;
 }
 '''
 

@@ -47,12 +47,15 @@ class screenRegionPromptWidget(QMainWindow):
     def initUI(self):
         self.resetWindow()
         self.repaint()
-
+    
+    '''
     def moveEvent(self, event):
         # The window was moved, put it in the top left, and ignore the event
         self.resetWindow()
         event.ignore()
-    
+        print('executed')
+    '''
+
     def mousePressEvent(self, event):
         if self.active:
             self.mouseDownPoint = (event.x(), event.y())
@@ -101,11 +104,15 @@ class screenRegionPromptWidget(QMainWindow):
         else:
             event.accept()
     
+    '''
     def changeEvent(self, event):
         if event.type() == QEvent.ActivationChange:
+            print('executed')
             if self.active and not self.isActiveWindow():
+                print('executed 2')
                 self.raise_()
                 self.activateWindow()
+    '''
 
     def reset(self):
         self.mouseDownPoint = None
@@ -124,7 +131,6 @@ class screenRegionPromptWidget(QMainWindow):
         x1, x2 = min(a[0], b[0]), max(a[0], b[0])
         y1, y2 = min(a[1], b[1]), max(a[1], b[1])
         w, h = max(1, x2 - x1), max(1, y2 - y1)
-        #print({"left": x1, "top": y1, "width": w, "height": h})
         return {"left": x1, "top": y1, "width": w, "height": h}
     
     def complete(self):
