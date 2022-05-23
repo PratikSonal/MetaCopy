@@ -2,10 +2,13 @@
 
 ![Logo](https://github.com/PratikSonal/MetaCopy/blob/main/Logo.png)
 
-A pure python based application utilising Google's Tesseract-OCR to extract text from image. The ultimate copy/paste solution.
+A pure python based cross-platform application utilising Google's Tesseract-OCR to extract text from image. The ultimate copy/paste solution.
 
 **Prerequisites:**
 + Python 3.6+
+
+## Preview
+![Alt Text](https://github.com/PratikSonal/MetaCopy/blob/main/Preview.gif)
 
 ## Installation
 
@@ -17,7 +20,6 @@ A pure python based application utilising Google's Tesseract-OCR to extract text
 ```
 apt install python3-pil tesseract-ocr libtesseract-dev tesseract-ocr-eng tesseract-ocr-script-latn
 ```
-
 
 Install all remaining dependencies with the following command:
 ```
