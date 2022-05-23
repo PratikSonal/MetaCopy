@@ -13,10 +13,11 @@ A pure python based application utilising Google's Tesseract-OCR to extract text
 + Download and install the relevant version of [tesseract-ocr](https://github.com/UB-Mannheim/tesseract/wiki), keeping the default installation directory.
 
 **Linux:**
-+Install tesseract-ocr with the following command:
++ Install tesseract-ocr with the following command:
 ```
 apt install python3-pil tesseract-ocr libtesseract-dev tesseract-ocr-eng tesseract-ocr-script-latn
 ```
+
 
 Install all remaining dependencies with the following command:
 ```
