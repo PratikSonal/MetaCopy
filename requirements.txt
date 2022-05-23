@@ -1,0 +1,7 @@
+numpy
+mss
+Pillow
+pytesseract
+PyQt5
+QtWebEngine
+screeninfo
