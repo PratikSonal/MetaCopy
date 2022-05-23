@@ -2,7 +2,6 @@ import os
 import numpy as np
 import mss
 import PIL
-import math
 import pathlib
 import threading
 import pytesseract.pytesseract as tesseract
@@ -22,7 +21,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QComboBox,
 )
-from displayInfo import getVirturalDesktopDimensions
+from displayInfo import getVirturalDesktopDimensions, getOS
 
 from screenRegion import screenRegionPromptWidget
 from output import outputWindowWidget
@@ -32,11 +31,12 @@ screencap = mss.mss()
 def screenshotRegion(screenRegion):
     return np.asarray(screencap.grab(screenRegion))
 
+OS = getOS()
 myDirectory = str(pathlib.Path(__file__).parent.absolute())
 tesseractDirectory = "C:/Program Files/Tesseract-OCR" 
-tessdataDirectory = "C:/Program Files/Tesseract-OCR/tessdata" 
+tessdataDirectory =  "/usr/share/tesseract-ocr/4.00/tessdata" if OS == 'Linux' else "C:/Program Files/Tesseract-OCR/tessdata" 
 
-tesseract.tesseract_cmd = tesseractDirectory + r"/tesseract.exe"
+tesseract.tesseract_cmd = r'/usr/bin/tesseract' if OS == 'Linux' else tesseractDirectory + r"/tesseract.exe"
 tessdataConfig = r'--tessdata-dir "%s"' % tessdataDirectory
 
 def getTextFromImg(img, timeout = 3, language = 'eng'):
