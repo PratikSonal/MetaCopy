@@ -5,6 +5,7 @@ import PIL
 import pathlib
 import threading
 import pytesseract.pytesseract as tesseract
+import cv2
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -12,7 +13,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
 
 from PyQt5.QtWidgets import (
     QMainWindow,
@@ -34,19 +34,21 @@ def screenshotRegion(screenRegion):
 OS = getOS()
 myDirectory = str(pathlib.Path(__file__).parent.absolute())
 tesseractDirectory = "C:/Program Files/Tesseract-OCR" 
-tessdataDirectory =  "/usr/share/tesseract-ocr/4.00/tessdata" if OS == 'Linux' else "C:/Program Files/Tesseract-OCR/tessdata" 
+tessdataDirectory =  "/usr/share/tesseract-ocr/5/tessdata" if OS == 'Linux' else "C:/Program Files/Tesseract-OCR/tessdata" 
 
-tesseract.tesseract_cmd = r'/usr/bin/tesseract' if OS == 'Linux' else tesseractDirectory + r"/tesseract.exe"
+tesseract.tesseract_cmd = '/usr/bin/tesseract' if OS == 'Linux' else tesseractDirectory + r"/tesseract.exe"
 tessdataConfig = r'--tessdata-dir "%s"' % tessdataDirectory
 
 def getTextFromImg(img, timeout = 3, language = 'eng'):
     return tesseract.image_to_string(img, timeout = timeout, lang = language, config = tessdataConfig)
 
-# displaced to displayInfo
+def preprocess(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+    _, dist = cv2.threshold(thresh, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-# displaced to screenRegion
+    return dist
 
-# displaced to output
 
 mainWindow_CSS = '''
 QMainWindow{
@@ -101,8 +103,8 @@ OCRSTATUS_TIMEOUT = 2
 OCRSTATUS_FINISH = 3
 
 dimension = getVirturalDesktopDimensions()
-windowWidth_noImage = int(dimension['width'] * 0.5)
-windowHeight_noImage = int(dimension['height'] * 0.5)
+WIDTH = int(dimension['width'] * 0.5)
+HEIGHT = int(dimension['height'] * 0.5)
 
 class mainWindowWidget(QMainWindow):
     currentScanID = 0 
@@ -115,44 +117,36 @@ class mainWindowWidget(QMainWindow):
         self.setWindowTitle("MetaCopy")
         self.setStyleSheet(mainWindow_CSS)
         
-        self.setFixedSize(windowWidth_noImage, windowHeight_noImage)
+        self.setFixedSize(WIDTH, HEIGHT)
         
         self.screenRegionWindow = screenRegionPromptWidget()
 
         self.logo = QLabel(self, objectName = "logo")
         self.logo.setPixmap(QPixmap("Logo.png"))
         self.logo.setScaledContents(True)
-        self.logo.setFixedSize(windowWidth_noImage, int(windowHeight_noImage * 0.65))
+        self.logo.setFixedSize(WIDTH, int(HEIGHT * 0.65))
         self.logo.show()
         
         self.topbarItems = QLabel(self, objectName = "topbarItemsContainer")
-        self.topbarItems.setFixedSize(windowWidth_noImage, int(windowWidth_noImage * 0.20))
-        self.topbarItems.move(0, int(windowHeight_noImage * 0.65))
+        self.topbarItems.setFixedSize(WIDTH, int(WIDTH * 0.20))
+        self.topbarItems.move(0, int(HEIGHT * 0.65))
 
         self.screenSnipButton = QPushButton("CAPTURE", self.topbarItems, objectName = "screenSnipButton")
         self.screenSnipButton.clicked.connect(self.newSnipPressed)
-        self.screenSnipButton.setFont(QFont("Roboto", int(windowHeight_noImage * 0.05), 50, False))
-        self.screenSnipButton.setFixedSize(int(windowWidth_noImage * 0.3), int(windowHeight_noImage * 0.15))
-        self.screenSnipButton.move(int(windowWidth_noImage * 0.15), int(windowHeight_noImage * 0.04))
-
-        '''
-        self.screenSnipButton = QPushButton("CONTACT US", self.topbarItems, objectName = "nopen_webbrowser")
-        self.screenSnipButton.clicked.connect(self.open_webbrowser)
-        self.screenSnipButton.setFont(QFont("Gotham", 14, 1000, False))
-        self.screenSnipButton.setFixedSize(160, 50 - 12 )
-        self.screenSnipButton.move(30+ 190 + 30, 7)
-        '''
+        self.screenSnipButton.setFont(QFont("Roboto", int(HEIGHT * 0.05), 50, False))
+        self.screenSnipButton.setFixedSize(int(WIDTH * 0.3), int(HEIGHT * 0.15))
+        self.screenSnipButton.move(int(WIDTH * 0.15), int(HEIGHT * 0.04))
 
         self.openImageButton = QPushButton("UPLOAD", self.topbarItems, objectName = "openImageButton")
         self.openImageButton.clicked.connect(self.openImagePressed)
-        self.openImageButton.setFont(QFont("Roboto", int(windowHeight_noImage * 0.05), 50, False))
-        self.openImageButton.setFixedSize(int(windowWidth_noImage * 0.3), int(windowHeight_noImage * 0.15))
-        self.openImageButton.move(int(windowWidth_noImage * 0.55), int(windowHeight_noImage * 0.04))
+        self.openImageButton.setFont(QFont("Roboto", int(HEIGHT * 0.05), 50, False))
+        self.openImageButton.setFixedSize(int(WIDTH * 0.3), int(HEIGHT * 0.15))
+        self.openImageButton.move(int(WIDTH * 0.55), int(HEIGHT * 0.04))
         
         self.basicButtonLabels = QLabel("CAPTURE: Extract text from screenshot\n UPLOAD: Upload image from your PC", self.topbarItems, objectName = "basicButtonLabels")
-        self.basicButtonLabels.setFont(QFont("Roboto", int(windowHeight_noImage * 0.030), 50, False))
-        self.basicButtonLabels.setFixedSize(int(windowWidth_noImage * 0.5), int(windowHeight_noImage * 0.2))
-        self.basicButtonLabels.move(int(windowWidth_noImage * 0.25), int(windowHeight_noImage * 0.18))
+        self.basicButtonLabels.setFont(QFont("Roboto", int(HEIGHT * 0.030), 50, False))
+        self.basicButtonLabels.setFixedSize(int(WIDTH * 0.5), int(HEIGHT * 0.2))
+        self.basicButtonLabels.move(int(WIDTH * 0.25), int(HEIGHT * 0.18))
 
         self.imagePreview = QLabel("", self, objectName = "imagePreview")
         self.imagePreview.hide()
@@ -164,11 +158,6 @@ class mainWindowWidget(QMainWindow):
         self.hide()
         self.outputWindow.close() 
         self.screenRegionWindow.promptForRegion(callback = self.gotScreenRegionForSnip)
-   
-    def open_webbrowser(self):
-        self.web = QWebView()
-        self.web.load(QUrl("https://pratiksonal.github.io/"))
-        self.web.show()
 
     def openImagePressed(self):
         dialogTitle = "VIEW IMAGE"
@@ -180,12 +169,12 @@ class mainWindowWidget(QMainWindow):
             return
         else:
             img = None
+
             try:
                 self.lastOpenedDirectory = str(pathlib.Path(fname).parent)
-                
                 pic = PIL.Image.open(fname)
-                
                 img = np.array(pic)
+                #remove alpha channels
                 if img.shape[-1] == 4:
                     img = img[:,:,:3]
                 
@@ -198,6 +187,7 @@ class mainWindowWidget(QMainWindow):
         text = None
         
         try:
+            image = preprocess(image)
             text = getTextFromImg(image, timeout = 120, language = language['code'])
         except BaseException as e:
             if "Tesseract process timeout" in str(e):
@@ -226,12 +216,11 @@ class mainWindowWidget(QMainWindow):
             if img.shape[-1] == 4: # drop alpha channel/image transparency factor
                 img = img[:,:,:3]
             img = img[:,:,::-1] # convert BGR -> RGB
-            
+
             self.newImage(img)
     
     def newImage(self, img):
         self.image_source = img
-        
         self.newOCR()
         
     def newOCR(self):
@@ -240,9 +229,7 @@ class mainWindowWidget(QMainWindow):
         
         self.currentScanID += 1
         if self.currentScanID == 1: 
-        #    self.basicButtonLabels.hide()
             self.imagePreview.show()
-        #    self.topbarItems.setFixedSize(3 + 100 + 3 + 100 + 3 + 200 + 3, 50 - 6)
         
         language = None
         if self.currentOCRSourceLanguageIndex < len(supportedOCRLanguages):
@@ -252,44 +239,18 @@ class mainWindowWidget(QMainWindow):
         
         # show image
         h, w, ch = self.image_source.shape
-        #print('h : ' + str(h))
-        #print('w : ' + str(w))
-        #print('ch : ' + str(ch))
 
         qimg = QImage(self.image_source.data.tobytes(), w, h, ch * w, QImage.Format_RGB888)
-        self.imagePreview.setPixmap(QPixmap.fromImage(qimg).scaled(windowWidth_noImage, int(windowHeight_noImage * 0.8), Qt.KeepAspectRatio, transformMode = Qt.SmoothTransformation))
-        #self.imagePreview.setFixedSize(w, h)
+        self.imagePreview.setPixmap(QPixmap.fromImage(qimg).scaled(WIDTH, int(HEIGHT * 0.8), Qt.KeepAspectRatio, transformMode = Qt.SmoothTransformation))
         
         # resize main window
-        topbarWidth = windowWidth_noImage #30 + 200 + 30 + 300 + 30 + 200 + 30
-        imageWidth = w
-        imagePosition = 3
-        topbarPosition = 3
-        windowWidth = windowWidth_noImage
-
-        if topbarWidth == imageWidth:
-            imagePosition = topbarPosition = 3
-            windowWidth = 3 + topbarWidth + 3
-        elif topbarWidth > imageWidth:
-            topbarPosition = 3
-            imagePosition = 3 + (topbarWidth - imageWidth)/2
-            windowWidth = 3 + topbarWidth + 3
-        else: #if topbarWidth < imageWidth:
-            imagePosition = 3
-            topbarPosition = 3 + (imageWidth - topbarWidth)/2
-            windowWidth = 3 + imageWidth + 3
-        
-        self.imagePreview.setFixedSize(windowWidth_noImage, int(windowHeight_noImage * 0.8))
+        self.imagePreview.setFixedSize(WIDTH, int(HEIGHT * 0.8))
         self.imagePreview.setAlignment(Qt.AlignCenter)
-        self.imagePreview.move(0, windowHeight_noImage)
+        self.imagePreview.move(0, HEIGHT)
 
-        #self.topbarItems.move(math.floor(topbarPosition) + 100, 10)
-        #self.setFixedSize(math.ceil(windowWidth), 175 + h)
-        #self.basicButtonLabels.move(math.floor(topbarPosition) + 125, 75)
-        #self.combo.move(math.floor(topbarPosition) + 550, 80)
-        self.topbarItems.move(0, int(windowHeight_noImage * 0.65))
-        self.setFixedSize(windowWidth_noImage, int(windowHeight_noImage * 1.8))
-        self.basicButtonLabels.move(int(windowWidth_noImage * 0.25), int(windowHeight_noImage * 0.18))
+        self.topbarItems.move(0, int(HEIGHT * 0.65))
+        self.setFixedSize(WIDTH, int(HEIGHT * 1.8))
+        self.basicButtonLabels.move(int(WIDTH * 0.25), int(HEIGHT * 0.18))
         
         # notify outputWindow to get ready, and begin OCR
         self.outputWindow.ocrStatusChangeSignal.emit(self.currentScanID, OCRSTATUS_BEGIN, language['name'])

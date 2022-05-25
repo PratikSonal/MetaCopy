@@ -5,3 +5,4 @@ pytesseract
 PyQt5
 QtWebEngine
 screeninfo
+opencv-python-headless
