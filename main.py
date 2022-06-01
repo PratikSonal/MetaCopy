@@ -43,10 +43,18 @@ def getTextFromImg(img, timeout = 3, language = 'eng'):
     return tesseract.image_to_string(img, timeout = timeout, lang = language, config = tessdataConfig)
 
 def preprocess(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
+
+    kernel = np.ones((1,1), np.uint8)
+    img = cv2.dilate(img, kernel, iterations=1)
+    img = cv2.erode(img, kernel, iterations=1)
+    #img = cv2.GaussianBlur(img, (5,5), 0)
+    #img = cv2.medianBlur(img,5)
+
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     _, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
     _, dist = cv2.threshold(thresh, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-
+    #status = cv2.imwrite('C:/Users/Pratik Sonal/Pictures/python_grey_data.png', img)
     return dist
 
 
